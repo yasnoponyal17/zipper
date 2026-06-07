@@ -29,7 +29,6 @@ app.post('/zipper', upload.any(), (req, res) => {
 
         res.set({
             'Content-Type': 'application/gzip',
-            'Content-Disposition': 'attachment; filename=result.gz'
         })
         res.send(compressed)
     })
