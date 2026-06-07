@@ -16,24 +16,22 @@ app.get('/login', (req, res) => {
     res.send('1155290')
 })
 
-app.post('/zipper', upload.any(), (req, res) => {
-    const file = req.files && req.files[0];
-
-    if (!file) {
-        return res.status(400).send('Ошибка: Файл не загружен.');
+app.post('/zipper', upload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file');
     }
 
-    zlib.gzip(file.buffer, (err, compressedBuffer) => {
+    zlib.gzip(req.file.buffer, (err, compressed) => {
         if (err) {
-            console.error("Ошибка сжатия:", err);
-            return res.status(500).send('Ошибка сервера при сжатии');
+            return res.status(500).send('Compression error');
         }
+
         res.set({
             'Content-Type': 'application/gzip',
-            'Content-Disposition': 'attachment; filename="result.gz"',
-            'Content-Length': compressedBuffer.length
+            'Content-Disposition': 'attachment; filename=result.gz'
         });
-        res.send(compressedBuffer);
+
+        res.send(compressed);
     });
 });
 
