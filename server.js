@@ -16,7 +16,7 @@ app.get('/login', (req, res) => {
     res.send('1155290')
 })
 
-app.post('zipper', upload.single('file'), (req, res) => {
+app.post('/zipper', upload.single('file'), (req, res) => {
     if (!req.file) {
         return res.status(400).send('Ошибка: Файл не загружен.')
     }
