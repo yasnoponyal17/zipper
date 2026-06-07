@@ -1,39 +1,34 @@
-const express = require('express')
-const multer = require('multer')
-const zlib = require('zlib')
-const cors = require('cors')
+const express = require('express');
+const multer = require('multer');
+const zlib = require('zlib');
 
-const app = express()
-const port = process.env.PORT || 3000
+const app = express();
+const upload = multer({ storage: multer.memoryStorage() });
 
-app.use(cors())
-
-const upload = multer({ storage: multer.memoryStorage() })
+const LOGIN = '1155290';
 
 app.get('/login', (req, res) => {
-    res.set('Content-Type', 'text/plain')
-    res.send('1155290')
-})
+    res.type('text/plain').send(LOGIN);
+});
 
-app.post('/zipper', upload.any(), (req, res) => {
-    const file = req.files && req.files[0]
-
-    if (!file) {
-        return res.status(400).send('No file uploaded')
+app.post('/zipper', upload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('file required');
     }
 
-    zlib.gzip(file.buffer, (err, compressed) => {
+    zlib.gzip(req.file.buffer, (err, gz) => {
         if (err) {
-            return res.status(500).send('Compression error')
+            return res.status(500).send(err.message);
         }
 
         res.set({
             'Content-Type': 'application/gzip',
-        })
-        res.send(compressed)
-    })
-})
+            'Content-Disposition': 'attachment; filename="result.gz"',
+        });
 
-app.listen(port, () => {
-    console.log(`Сервер запущен http://localhost:${port}`)
-})
+        res.send(gz);
+    });
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port);
