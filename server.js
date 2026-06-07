@@ -16,23 +16,26 @@ app.get('/login', (req, res) => {
     res.send('1155290')
 })
 
-app.post('/zipper', upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).send('Ошибка: Файл не загружен.')
+app.post('/zipper', upload.any(), (req, res) => {
+    const file = req.files && req.files[0];
+
+    if (!file) {
+        return res.status(400).send('Ошибка: Файл не загружен.');
     }
-    zlib.gzip(req.file.buffer, (err, compressedBuffer) => {
+
+    zlib.gzip(file.buffer, (err, compressedBuffer) => {
         if (err) {
-            console.error("Ошибка сжатия:", err)
-            return res.status(500).send('Ошибка сервера при сжатии')
+            console.error("Ошибка сжатия:", err);
+            return res.status(500).send('Ошибка сервера при сжатии');
         }
         res.set({
             'Content-Type': 'application/gzip',
             'Content-Disposition': 'attachment; filename="result.gz"',
             'Content-Length': compressedBuffer.length
-        })
-        res.send(compressedBuffer)
-    })
-})
+        });
+        res.send(compressedBuffer);
+    });
+});
 
 app.listen(port, () => {
     console.log(`Сервер запущен http://localhost:${port}`)
