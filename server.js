@@ -15,6 +15,13 @@ app.get('/login', function (req, res) {
 })
 
 app.post('/zipper', uploadFile, async function (req, res, next) {
+    console.log('req.file:', req.file)
+    console.log('req.body:', req.body)
+
+    if (!req.file) {
+        return res.status(400).send('Файл не получен')
+    }
+
     try {
         const inputBuffer = fs.readFileSync(req.file.path)
         const compressedBuffer = await gzipAsync(inputBuffer, { level: 9 });
@@ -24,6 +31,7 @@ app.post('/zipper', uploadFile, async function (req, res, next) {
         res.send(compressedBuffer)
     } catch (error) {
         console.error('Ошибка:', error);
+        res.status(500).send('Ошибка сжатия')
     }
 })
 
