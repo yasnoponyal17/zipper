@@ -1,34 +1,32 @@
-const express = require('express');
-const multer = require('multer');
-const zlib = require('zlib');
+const express = require('express')
+const multer = require('multer')
+const zlib = require('zlib')
+const fs = require('fs')
+const { promisify } = require('util');
+const gzipAsync = promisify(zlib.gzip);
+const upload = multer({ dest: 'uploads/' })
 
-const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
+const app = express()
 
-const LOGIN = '1155290';
+const uploadFile = upload.single('file')
 
-app.get('/login', (req, res) => {
-    res.type('text/plain').send(LOGIN);
-});
+app.get('/login', function (req, res) {
+    res.send('1155290')
+})
 
-app.post('/zipper', upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).send('file required');
+app.post('/zipper', uploadFile, async function (req, res, next) {
+    try {
+        const inputBuffer = fs.readFileSync(req.file.path)
+        const compressedBuffer = await gzipAsync(inputBuffer, { level: 9 });
+
+
+        res.setHeader('Content-Type', 'application/gzip')
+        res.send(compressedBuffer)
+    } catch (error) {
+        console.error('Ошибка:', error);
     }
+})
 
-    zlib.gzip(req.file.buffer, (err, gz) => {
-        if (err) {
-            return res.status(500).send(err.message);
-        }
-
-        res.set({
-            'Content-Type': 'application/gzip',
-            'Content-Disposition': 'attachment; filename="result.gz"',
-        });
-
-        res.send(gz);
-    });
-});
-
-const port = process.env.PORT || 3000;
-app.listen(port);
+app.listen(process.env.PORT || 3000, () => {
+    console.log('Сервер запущен: http://localhost:3000')
+})
